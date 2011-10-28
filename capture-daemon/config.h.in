@@ -1,0 +1,56 @@
+/*
+ * config.h.in; part of the GIMS GENI project.
+ *
+ * This source code is licensed under the GENI public license.
+ * See www.geni.net, or "geni_public_license.txt" that should
+ * have accompanied this software.
+ */
+
+#undef HAVE_LIBPCAP
+
+#undef HAVE_PCAP_CREATE
+
+#undef HAVE_PCAP_NEXT_EX
+
+#undef HAVE_PCAP_SET_BUFFER_SIZE
+
+#undef HAVE_YAF
+
+#undef HAVE_SYS_TIME_H
+
+#undef HAVE_SYS_TYPES_H
+
+#undef TIME_WITH_SYS_TIME
+
+#undef HAVE_PCAP_PCAP_H
+
+#undef HAVE_PCAP_H
+
+#undef HAVE_INTTYPES_H
+
+#undef HAVE_STDINT_H
+
+/* define to include anonymization code */
+#define ANONYMIZE
+
+#define PACKAGE_BUGREPORT "jsommers@colgate.edu"
+
+#define PACKAGE_NAME "GIMSCaptureDaemon"
+
+#define PACKAGE_VERSION "2010_06a"
+
+#undef PACKAGE_STRING PACKAGE_NAME##PACKAGE_VERSION
+
+#define PACKAGE_TARNAME "gims_capd"
+
+#define PACKAGE_URL "http://groups.geni.net/geni/wiki/MeasurementSystem"
+
+#define GIMS_CAPD_VERSION PACKAGE_VERSION
+
+#undef YAF_VERSION
+
+#undef FIXBUF_VERSION
+
+#define YAF_URL "http://aircert.sourceforge.net/yaf/index.html"
+
+

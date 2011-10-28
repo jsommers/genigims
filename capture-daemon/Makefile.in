@@ -1,0 +1,34 @@
+#
+# $Id$
+#
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC=@CC@
+CFLAGS=@CFLAGS@
+LIBS=@LIBS@
+
+TARGET=capture-daemon
+SRC=$(wildcard *.c)
+OBJS=$(patsubst %.c,%.o,$(SRC))
+
+all: $(TARGET)
+
+.c.o:
+	$(CC) $< -c $(CFLAGS) 
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(LIBS)
+
+install:
+	chown root $(TARGET)
+	chmod 4755 $(TARGET) 
+
+clean:
+	$(RM) $(TARGET) *.o *~ 
+
+distclean: clean
+	$(RM) Makefile config.h config.log config.status \
+              completed_capture.txt completed_upload.txt
+

@@ -1,0 +1,31 @@
+PauseCapture
+GetExperimentResults
+
+known bugs and things that need to be improved:
+
+capd_proxy:
+
+- xml/rpc transactions should be over TLS 
+
+- storage thread death -- need to have some tmo to handle uploading
+  files some time after capture is shut down for an experiment.
+
+- clean up informational messages sent back to gui to be more informative
+
+- all python code should be converted to use python3, eventually
+
+storage:
+
+- how to best get error messages from storage back to the user, since these all
+  happen in an asynchronous fashion?
+*FIXED: method getStorageLog in capd_proxy returns the last n storage logs to the user*
+
+
+capture-daemon:
+
+- changes to handle ipv6
+
+- anonymization testing
+
+- make a set of canned pcap traces to use for regression testing
+

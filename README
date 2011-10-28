@@ -1,0 +1,92 @@
+There are two basic components to the capture node software:
+capture-daemon, and capd_proxy.py.  The proxy handles all XML/RPC
+communication with the GIMS AM and UI, and manages starting any
+necessary capture processes and resulting capture files.
+
+capture-daemon
+==============
+The capture daemon can be run as a standalone process, but is normally
+started up by the capd_proxy.  capd_proxy should run in an
+unprivileged mode, thus capture-daemon should be installed as setuid
+root (or a privileged user that has appropriate access to network
+devices via libpcap) in order for it to have appropriate permissions
+to open capture devices, etc.
+
+Separate capture-daemon processes will be started by capd_proxy for
+each active experiment.  While there is some overhead involved with
+having multiple capture processes running at the same time, this
+architecture simplifies the problem of demultiplexing the appropriate
+packets for a given experiment.  It also provides a level of isolation
+among experiments, and enables a separate O&M capture process to be
+running alongside any active experiment process (e.g., in order to
+capture *all* traffic on the wire).
+
+The only software dependency for the basic functionality of
+capture-daemon is a working libpcap library.
+
+For flow aggregation in IPFIX records, libyaf and libfixbuf are
+required.  They are available at
+http://tools.netsa.cert.org/index.html.  These tools should be
+compiled and installed prior to compiling the capture-daemon code.
+They have their own set of prerequisites, notably glib 2.6.4 or
+better.  See the yaf/fixbuf documentation for more details.
+
+From inside the capture-daemon subdirectory, configure and make, then
+sudo make install.  (Make install just changes the capture-daemon
+binary to be suid root so that it can have permissions to set a net
+device in promiscuous mode.  Alternatively, run capd_proxy.py as root.)
+
+
+capd_proxy.py
+=============
+Requires python 2.6.
+
+The capd_proxy handles all XML/RPC functions for configuring,
+starting, and stopping experiments.  There are also interfaces for
+testing storage capabilities for an experiment, and for gathering
+information on running experiments.
+
+From the capture daemon proxy, a separate process is started up to
+handle each storage type (s3, ssh, and local storage).  This storage
+process handles checking for new files that can be uploaded, and also
+annotates the existing metadata for raw capture files prior to upload.
+Each individual file transfer is handled in a transient (Python)
+thread in order to avoid blocking the entire process on a single
+transfer.  (Note that some work is yet to be done on ensuring the
+propagation of errors from storage uploads to the UI (and
+experimenters).)  Storage functionality is almost entirely housed in
+the capd_storage.py module.
+
+The software dependencies for capd_proxy are related to the storage
+capabilities: the boto Python library is required for s3, and paramiko
+and pyCrypto are required for ssh.  Each of these libraries can be
+quite easily installed (see depend subdirectory), but capd_proxy will
+successfully start up even if they are not present (you simply won't
+have the affected storage capabilities).  (On debian linuxes, just do:
+apt-get install python-paramiko python-crypto python-boto.)
+
+There are a few options to start up capd_proxy.py (python
+capd_proxy.py -h will show them).  If capture-daemon is suid root or
+capd_proxy.py is running as root, you should simply be able to say
+"python capd_proxy.py" to get started.  The output logging will
+immediately show what storage capabilities have been found (via
+installed python libraries).  A simple script (runproxy.sh) is
+supplied to do a basic startup of the proxy.  This will cause the
+proxy to listen on any locally configured IP address and port 8001.
+
+
+watch_proxy.py
+==============
+Requires Python 2.6.
+
+Watchdog process written to start and then monitor capd_proxy. It
+restarts the capd_proxy in the event of a crash and also gives the
+capd_proxy a particular amount of time to exit cleanly in case
+it gets stuck. The watchdog propagates termination 
+signals so that capd_proxy started using the watchdog will only keep
+running as long as the watchdog is running. The watchdog also takes
+command line arguments parses, and passes them to capd_proxy.
+
+The status of the watchdog itself is monitored by a script started
+by cron every 30 minutes. 
+

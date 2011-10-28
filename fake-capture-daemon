@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import sys
+import time
+import optparse
+import os
+
+
+def make_cap_file(stropt, prefix, exptname):
+    stime = time.strftime('%Y%m%d%H%M%S')
+    outfbase = prefix + os.path.sep + 'capd-' + exptname + '-' + stime 
+    outf = open(outfbase + '.pcap', 'w')
+    print >>outf,'*'*20
+    print >>outf,'fake capture file'
+    print >>outf,outfbase + '.pcap'
+    print >>outf,stropt
+    print >>outf,'*'*20
+    outf.close()
+
+    outf = open(outfbase + '_metadump.txt', 'w')
+    print >>outf,"fake packet metadata"
+    print >>outf,"---done---"
+    outf.close()
+
+    print >>sys.stderr, 'fake capture file generated:',outfbase + '.pcap'
+
+
+def main():
+    parser = optparse.OptionParser()
+    parser.prog = "fake-capture-daemon"
+    parser.add_option("-d", "--device", dest="device", default="eth0",
+                      help="Set the capture device")
+    parser.add_option("-p", "--prefix", dest="prefix", default="",
+                      help="Set the directory prefix for output files")
+    parser.add_option("-N", "--exptid", dest="exptid", default="",
+                      help="Set the experiment identifier")
+    parser.add_option("-s", "--pcapfilter", dest="pcapfilter", default="",
+                      help="Set the pcap filter expression")
+    parser.add_option("-i", "--interval", dest="interval", default=2, type="int",
+                      help="Set the interval (sec) for generating fake capture files")
+    (options, args) = parser.parse_args()
+
+    print >>sys.stderr, 'Inside',parser.prog,'with:',options
+
+    if not options.exptid:
+        print >>sys.stderr, 'Error: missing experiment identifier'
+        sys.exit(-1)
+
+    while True:
+        time.sleep(options.interval)
+        make_cap_file(str(options), options.prefix, options.exptid)
+
+
+if __name__ == '__main__':
+    main()
