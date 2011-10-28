@@ -1,0 +1,17 @@
+Log into gims-sensor-01 as root, and cd into capd-06282010-alpha.
+
+To clean everything up (i.e., old storage files, etc.) before a fresh
+start, run ./cleanup.sh
+   - Note that doing a clean up does *not* remove any log files, so
+     you can still inspect the log files to find out what the system
+     was doing, even after you clean up any temporary storage files.
+
+To start the capture daemon proxy, just do ./runproxy.sh
+   - You'll need to keep the terminal open where you start it.
+   - To stop it, just type ^C.
+   - It's never a bad idea to type ./cleanup.sh between starts of the
+     capture daemon proxy.
+   - Once it's started, it should be accessible on TCP port 8001 for
+     XML/RPC. 
+
+
