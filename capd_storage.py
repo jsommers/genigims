@@ -116,16 +116,28 @@ def sftp_upload(basedir, log, exptid, hostname, username, pkeystr, filelist, rem
     for f in filelist:
         log.debug('%s Going to move %s -> %s' % (exptid, f[0], f[1]))
 
-    try:
-        fobj = StringIO.StringIO(pkeystr)
-        privkey = paramiko.RSAKey.from_private_key(fobj)
-        fobj.close()
-        t = paramiko.Transport((hostname, port))
-        t.use_compression(True) 
-        t.connect(username=username, pkey=privkey)
-        sftp = paramiko.SFTPClient.from_transport(t)
-    except paramiko.SSHException,e:
-        log.warn(exptid + ' Error connecting to remote SSH server: ' + str(e))
+    maxattempts = 5
+    attempts = maxattempts
+    success = False
+    sleeptime = 0.5
+    while attempts > 0 and not success:
+        try:
+            fobj = StringIO.StringIO(pkeystr)
+            privkey = paramiko.RSAKey.from_private_key(fobj)
+            fobj.close()
+            t = paramiko.Transport((hostname, port))
+            t.use_compression(True) 
+            t.connect(username=username, pkey=privkey)
+            sftp = paramiko.SFTPClient.from_transport(t)
+            success = True
+        except paramiko.SSHException,e:
+            log.warn(exptid + ' Error connecting to remote SSH server: ' + str(e) + '.  Trying ' + str(attempts) + '  more times.')
+            attempts -= 1
+            time.sleep(sleeptime)
+            sleeptime *= 2
+
+    if not success:
+        log.warn(exptid + ' Gave up trying to connect to remote SSH server after ' + str(maxattempts) + ' attempts.')
         return
 
     remotepath = remotepath+os.sep+exptid
@@ -143,10 +155,13 @@ def sftp_upload(basedir, log, exptid, hostname, username, pkeystr, filelist, rem
         return
 
     for ftup in filelist:
+        success = False
+
         log.info(exptid + ' Starting upload of file '+str(ftup[0])+' to '+username+'@'+hostname+':'+str(ftup[1]))
         try:
             sftp.put(ftup[0], ftup[1])
             log.info(exptid + ' Finished upload of file '+str(ftup[0])+' to '+username+'@'+hostname+':'+str(ftup[1]))
+            success = True
         except Exception,e:
             log.warn(exptid + ' Error transferring file over sftp: ' + str(e))
 
@@ -155,7 +170,7 @@ def sftp_upload(basedir, log, exptid, hostname, username, pkeystr, filelist, rem
     try:
         t.close()
     except paramiko.SSHException,e:
-        log.warn(exptid + ' Error connecting to remote SSH server: ' + str(e))
+        log.warn(exptid + ' Error disconnecting from remote SSH server: ' + str(e))
     
 
 def update_metadata(filelist):
